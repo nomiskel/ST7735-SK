@@ -69,7 +69,8 @@ void dt(int *d, int *m, int *y) {
 void setup() {
 // =========
   Serial.begin(115200);
-  Serial.print(F("Hello! ST77xx TFT Test"));
+  delay(100);
+  Serial.print(F("Hello.! - This is ST7735-SK Scetch"));
 
   // Use this initializer if using a 1.8" TFT screen:
   tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
@@ -96,7 +97,7 @@ void setup() {
   //
   tft.setFont(&FreeMono12pt7b);
   //
-  #ifdef OK1
+  #ifdef OK1  // dispModeBig = true
   tft.fillScreen(ST77XX_BLACK);
   tft2_print(0, 0, "00:00", YELLOW);
   tft1_print(0, 2, " 1.01.2000", WHITE);
@@ -105,7 +106,7 @@ void setup() {
   //tft.drawRect(0, 0, tft.width() - 1, tft.height() - 1, MAGENTA);
   #endif
 
-  #ifdef OK2
+  #ifdef OK2  // dispModeBig = false
   tft.fillScreen(ST77XX_BLACK);
   tft1_print(0, 0, " 00:00 00", YELLOW);
   tft1_print(0, 1, " Montag", WHITE);
