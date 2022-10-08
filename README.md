@@ -1,2 +1,2 @@
 # ST7735-SK
- ST7735 TFT Display with RTC DS3231 and BME??
+ ST7735 TFT Display with RTC DS3231 and BME280
