@@ -1,0 +1,7 @@
+{
+    "sketch": "ST7735-SK.ino",
+    "port": "COM3",
+    "board": "esp32:esp32:nodemcu-32s",
+    "configuration": "FlashFreq=80,UploadSpeed=921600",
+    "output": "./.build"
+}
