@@ -11,6 +11,9 @@
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
 #include <TimeLib.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
 #include <Fonts/FreeMono12pt7b.h>
 #include "WLAN-SSID-PWD.h"    // set WiFi network SSID and password
 
@@ -34,6 +37,11 @@
   // #define TFT_MOSI    23   // SDA
   // #define TFT_SCLK    18   // SCK
 #endif
+
+// --- Temperatursensor DHT22 ---
+#define DHTPIN 5
+#define DHTTYPE DHT22
+DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // --- NTP-Server ---
 #define TZ_INFO "WEST-1DWEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00" // Western European Time
@@ -65,7 +73,11 @@ bool NetworkAvailable = false;
 // --- Sync with NTP ---
 bool syncNTP = false;
 
+// --- RTC DS3231 vorhanden ? ---
+bool RTC_OK = false;
+
 // --- Prototypes ---
+int SyncRTC();
 void splitIPAddress(String xxxxIP, char *ip12, char *ip34);
 char* centerText11(char *txt);
 void tft1_print_msg(char *txt2, char *txt3, char *txt4, uint16_t col3, uint16_t pause);
