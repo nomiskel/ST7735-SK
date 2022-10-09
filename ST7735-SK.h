@@ -46,7 +46,8 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 // --- NTP-Server ---
 #define TZ_INFO "WEST-1DWEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00" // Western European Time
 #define NTPServer "time.nist.gov"
-#define SEALEVELPRESSURE_HPA (1013.25)
+
+//#define SEALEVELPRESSURE_HPA (1013.25)  // Needed for BME280
 
 //#define CLEAR_PREF  // Comment out to clear preferences
 //#define IP178       // Comment out to force IP: 192.168.178.xxx
@@ -77,6 +78,7 @@ bool syncNTP = false;
 bool RTC_OK = false;
 
 // --- Prototypes ---
+bool getTempAndHumi();
 int SyncRTC();
 void splitIPAddress(String xxxxIP, char *ip12, char *ip34);
 char* centerText11(char *txt);

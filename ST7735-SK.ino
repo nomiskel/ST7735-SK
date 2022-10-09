@@ -5,7 +5,8 @@
 bool getTempAndHumi() {
 // ==================
   static float temperature = 0;
-  static float humidity = 0;
+  static float temp255 = 0;
+  static float humi255 = 0;
   static uint32_t ts255 = 0;
   
   // --- Alle 10 Sekunden Temperatur und Humidity auslesen ---
@@ -24,10 +25,16 @@ bool getTempAndHumi() {
     temperature = 0;
   }
   else {
-    float temp = event.temperature;  //- 29.11.2019 - Nur Änderungen von 0.1° zulassen.!
-    Serial.print(F("Temperature: "));
-    Serial.print(int(temperature));
-    Serial.println(F("°C"));
+    float temp = event.temperature;  // Nur Änderungen von 0.1° zulassen.!
+    Serial.print(F("Temperature (before): "));
+    String tmp = String(temperature, 1);
+    Serial.print(tmp);
+    Serial.println(F(" C"));
+    //
+    Serial.print(F("Temperature (now): "));
+    tmp = String(temp, 1);
+    Serial.print(tmp);
+    Serial.println(F(" C"));
     //
     if (temperature == 0) {
       temperature = temp;
@@ -52,6 +59,7 @@ bool getTempAndHumi() {
   // --------------------------------------
   // Get humidity event and print its value
   // --------------------------------------
+  float humidity;
   dht.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
     Serial.println(F("Error reading humidity!"));
@@ -67,6 +75,7 @@ bool getTempAndHumi() {
   // ----------------------------
   // Daten zum TFT-Display senden
   // ----------------------------
+  // --- Temperature ---
   float temp = temperature;
   float CalibrationValue = 0;
   temp += CalibrationValue;
@@ -80,20 +89,31 @@ bool getTempAndHumi() {
   }
   int h2 = int(humidity);
   //
-  String tmp = String(temp, 1);
-  tmp += " ";
+  String tmp;
   char buf[10];
-  sprintf(buf, "%s", tmp);
-  uint16_t col = GREEN;
-  if (temp < 19) col = BLUE;
-  if (temp > 25) col = RED;
-  tft1_print(6, 3, buf, col);
+  uint16_t col;
+  //
+  if (temp255 != temp) {
+    temp255 = temp;
+    //
+    tmp = String(temp, 1);
+    tmp += " ";
+    sprintf(buf, "%s", tmp);
+    col = GREEN;
+    if (temp < 19) col = BLUE;
+    if (temp > 25) col = RED;
+    tft1_print(6, 3, buf, col);
+  }
 
-  sprintf(buf, "%02i", h2);
-  col = GREEN;
-  if (humidity < 30) col = BLUE;
-  if (humidity > 70) col = RED;
-  tft1_print(6, 4, buf, col);
+  if (humi255 != humidity) {
+    humi255 = humidity;
+    //
+    sprintf(buf, "%02i", h2);
+    col = GREEN;
+    if (humidity < 30) col = BLUE;
+    if (humidity > 70) col = RED;
+    tft1_print(6, 4, buf, col);
+  }
 
   return true;
 }
@@ -165,9 +185,9 @@ char* centerText11(char *txt) {
   String txt11 = txt;
   //
   while (txt11.length() < 11) {
-    txt11 = " " + txt11;
+    txt11 += " ";
     if (txt11.length() < 11) {
-      txt11 += " ";
+      txt11 = " " + txt11;
     }
   }
   txt11.toCharArray(txt12, 12);
@@ -380,9 +400,8 @@ void setup() {
   tft.fillScreen(ST77XX_BLACK);
   tft2_print(0, 0, "00:00", YELLOW);
   tft1_print(0, 2, " 1.01.2000", WHITE);
-  tft1_print(0, 3, "Temp: 23,4", GREEN);
-  tft1_print(0, 4, "Humi: 50 %", CYAN);
-  //tft.drawRect(0, 0, tft.width() - 1, tft.height() - 1, MAGENTA);
+  tft1_print(0, 3, "Temp: 0.0", GREEN);
+  tft1_print(0, 4, "Humi: 00 %", CYAN);
   #endif
 
   #ifdef OK2  // dispModeBig = false
@@ -392,14 +411,13 @@ void setup() {
   tft1_print(0, 2, " 1.01.2000", WHITE);
   tft1_print(0, 3, "Temp: 0.0", GREEN);
   tft1_print(0, 4, "Humi: 00 %", CYAN);
-  //tft.drawRect(0, 0, tft.width() - 1, tft.height() - 1, MAGENTA);
   #endif
 }
 
 // --------
 void loop() {
 // ========
-  static uint32_t msec255 = millis();
+  static uint32_t msec255 = 0;
   static int xs255 = 0xFF;
   static int xn255 = 0xFF;
   static int xh255 = 0xFF;
