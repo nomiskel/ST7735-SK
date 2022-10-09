@@ -1,6 +1,49 @@
 
 #include "ST7735-SK.h"
 
+// -------------------------------------------------------
+void splitIPAddress(String xxxxIP, char *ip12, char *ip34) {
+// =======================================================
+  int p = xxxxIP.indexOf('.', 0);
+  p++;
+  p = xxxxIP.indexOf('.', p);
+  p++;
+  String xx = xxxxIP.substring(0, p);
+  xx.toCharArray(ip12, 12);
+  //
+  xx = xxxxIP.substring(p);
+  xx.toCharArray(ip34, 12);
+}
+
+// --------------------------
+char* centerText11(char *txt) {
+// ==========================
+  String txt11 = txt;
+  //
+  while (txt11.length() < 11) {
+    txt11 = " " + txt11;
+    if (txt11.length() < 11) {
+      txt11 += " ";
+    }
+  }
+  txt11.toCharArray(txt12, 12);
+  
+  return txt12;
+}
+
+// -----------------------------------------------------------------------------------
+void tft1_print_msg(char *txt2, char *txt3, char *txt4, uint16_t col3, uint16_t pause) {
+// ===================================================================================
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextSize(1);
+  //
+  if (txt2 != "") tft1_print(0, 1, centerText11(txt2), WHITE);
+  if (txt3 != "") tft1_print(0, 2, centerText11(txt3), col3);
+  if (txt4 != "") tft1_print(0, 3, centerText11(txt4), WHITE);
+  //
+  if (pause > 0) delay(pause);
+}
+
 // -----------------------------------------------------------
 void tft1_print(int16_t x, int16_t y, char *txt, uint16_t col) {
 // ===========================================================
@@ -58,7 +101,7 @@ void dt(int *d, int *m, int *y) {
   char buf[64];
   sscanf(__DATE__, "%s %d %d", buf, &day, &year);
   month = (strstr(month_names, buf) - month_names) / 3 + 1;
-  sprintf(buf, "%d%02d%02d", year, month, day);
+  //sprintf(buf, "%d%02d%02d", year, month, day);
   //
   *d = day;
   *m = month;
@@ -70,13 +113,87 @@ void setup() {
 // =========
   Serial.begin(115200);
   delay(100);
-  Serial.print(F("Hello.! - This is ST7735-SK Scetch"));
+  Serial.println(F("Hello.! - This is ST7735-SK Scetch"));
 
   // Use this initializer if using a 1.8" TFT screen:
   tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
-
   Serial.println(F("Initialized"));
   tft.setRotation(3);
+  tft.setFont(&FreeMono12pt7b);
+  tft1_print_msg("TFT ST7735", "OK", "INIT", GREEN, 2000);
+  //
+  // --- Initialize DS3231 RTC ---
+  Serial.print("DS3231 -> ");
+  if (! rtc.begin()) {  // I2C = 0x68 und 0x57(Eprom)
+    Serial.println("Error.!");
+    String xinfo = "Couldn't find RTC DS3231";
+    Serial.println(xinfo);
+    tft1_print_msg("RTC DS3231", "ERROR.!", "rtc.begin()", RED, 0);
+    Serial.flush();
+    while(1) {}  // Das wars
+  }
+  else {
+    Serial.println("RTC DS3231 successfully found");
+    tft1_print_msg("RTC DS3231", "SUCCESS", "rtc.begin()", GREEN, 1000);
+  }
+  //
+  // --- Start WLAN ---
+  Serial.println("Starting WLAN...");
+  tft1_print_msg("TFT ST7735", "Starting", "WLAN", YELLOW, 1000);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to "); Serial.println(ssid);
+  byte cnt = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    cnt++;
+    if (cnt == 20) break;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    tft1_print_msg("TFT ST7735", "SUCCESS", "WLAN", GREEN, 2000);
+    NetworkAvailable = true;
+    String xinfo = " -> connected";
+    Serial.println(xinfo);
+    String xxxxIP = WiFi.localIP().toString();
+    xinfo = "IP: ";
+    Serial.print(xinfo); Serial.println(xxxxIP);
+    char xxIP12[12];
+    char xxIP34[12];
+    splitIPAddress(xxxxIP, xxIP12, xxIP34);
+    tft1_print_msg("IP:", xxIP12, xxIP34, WHITE, 3000);
+    //
+    #ifdef IP178
+    if (! xxxxIP.startsWith("192.168.178.")) {
+      xinfo = "Error in IP Address.!";
+      Serial.println(xinfo);
+      tft1_print_msg(xxIP12, "ERROR.!", xxIP34, RED, 4000);
+      NetworkAvailable = false;
+    }
+    #endif
+    //
+    if (NetworkAvailable) {
+      // --- Zeit vom NTPServer holen ---
+      Serial.println(F("Getting NTP Date/Time"));
+      configTzTime(TZ_INFO, NTPServer);  // ESP32 Systemzeit mit NTP Synchronisieren
+      bool ok = getLocalTime(&TM, 10000);      // Versuche 10 s zu Synchronisieren
+      if (ok) {
+        Serial.println("getLocalTime() - Success");
+        tft1_print_msg("WLAN", "SUCCESS", "NTP-TIME", RED, 2000);
+      }
+      else {
+        Serial.println("getLocalTime() - Failed.!");
+        tft1_print_msg("WLAN", "ERROR.!", "NTP-TIME", RED, 3000);
+      }
+    }
+  }
+  else {
+    Serial.println(F("Network is not available.!"));
+    tft1_print_msg("TFT ST7735", "FAILED.!", "WLAN", RED, 4000);
+  }
+
+
+  
   //
   int day, month, year;
   dt(&day, &month, &year);
@@ -91,11 +208,9 @@ void setup() {
   s += String(tm[7]);
   //
   setTime(h.toInt(), m.toInt(), s.toInt(), day, month, year);
-  time_t Now = now();  // Add 11 Seconds
-  Now += 11;
+  time_t Now = now();  // Add 17 Seconds
+  Now += 17;
   setTime(Now);
-  //
-  tft.setFont(&FreeMono12pt7b);
   //
   #ifdef OK1  // dispModeBig = true
   tft.fillScreen(ST77XX_BLACK);
