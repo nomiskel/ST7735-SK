@@ -75,7 +75,7 @@ bool NetworkAvailable = false;
 bool syncNTP = false;
 
 // --- RTC DS3231 vorhanden ? ---
-bool RTC_OK = false;
+bool RTC_OK = true;
 
 // --- Prototypes ---
 bool getTempAndHumi();

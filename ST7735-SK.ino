@@ -301,7 +301,7 @@ void setup() {
     }
     else {
       Serial.println("RTC DS3231 successfully found");
-      tft1_print_msg("RTC DS3231", "SUCCESS", "rtc.begin()", GREEN, 1000);
+      tft1_print_msg("RTC DS3231", "SUCCESS", "rtc.begin()", GREEN, 2000);
     }
   }
   else {
@@ -437,7 +437,7 @@ void loop() {
   if (RTC_OK) {
     DateTime Now = rtc.now();
     xh = Now.hour();
-    xm = Now.minute();
+    xn = Now.minute();
     xs = Now.second();
     //
     wd = Now.dayOfTheWeek() + 1;  // 6=Samstag
