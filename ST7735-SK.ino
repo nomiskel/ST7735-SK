@@ -458,15 +458,15 @@ void loop() {
   Serial.printf("%02i.%02i.%04i %02i:%02i:%02i\r\n", xd, xm, xy, xh, xn, xs);
   //
   // --- Neue Minute ? ---
-  if (minute255 != xm) {
-    if (xm == 0) {
+  if (minute255 != xn) {
+    if (xn == 0) {
       if (xh == 4) {  // --- Um 4 Uhr mit NTP-Server synchronisieren ---
         int rc = SyncRTC();
         if (rc == -1) Serial.println("SyncRTC() ok");
         else Serial.printf("SyncRTC() failed with rc = %i.!\r\n", rc);
       }
     }
-    minute255 = xm;
+    minute255 = xn;
   }
   //
   // --- Alle 15 Sekunden die Uhrzeit-Anzeige umswitchen ---
