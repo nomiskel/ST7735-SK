@@ -78,7 +78,7 @@ bool syncNTP = false;
 bool RTC_OK = true;
 
 // --- Prototypes ---
-bool getTempAndHumi();
+bool getTempAndHumi(bool doAnyway = false);
 int SyncRTC();
 void splitIPAddress(String xxxxIP, char *ip12, char *ip34);
 char* centerText11(char *txt);

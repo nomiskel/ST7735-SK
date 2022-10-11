@@ -1,9 +1,9 @@
 
 #include "ST7735-SK.h"
 
-// ------------------
-bool getTempAndHumi() {
-// ==================
+// -------------------------------
+bool getTempAndHumi(bool doAnyway) {
+// ===============================
   static float temperature = 0;
   static float temp255 = 0;
   static float humi255 = 0;
@@ -11,7 +11,9 @@ bool getTempAndHumi() {
   
   // --- Alle 10 Sekunden Temperatur und Humidity auslesen ---
   uint32_t tsNow = millis();
-  if ((tsNow - ts255) < 10000) return false;
+  if ((tsNow - ts255) < 10000) {
+    if (! doAnyway) return false;
+  }
   ts255 = tsNow;
 
   // -----------------------------------------
@@ -93,7 +95,7 @@ bool getTempAndHumi() {
   char buf[10];
   uint16_t col;
   //
-  if (temp255 != temp) {
+  if ((temp255 != temp) || (doAnyway == true)) {
     temp255 = temp;
     //
     tmp = String(temp, 1);
@@ -105,7 +107,7 @@ bool getTempAndHumi() {
     tft1_print(6, 3, buf, col);
   }
 
-  if (humi255 != humidity) {
+  if ((humi255 != humidity) || (doAnyway == true)) {
     humi255 = humidity;
     //
     sprintf(buf, "%02i", h2);
@@ -465,6 +467,15 @@ void loop() {
         if (rc == -1) Serial.println("SyncRTC() ok");
         else Serial.printf("SyncRTC() failed with rc = %i.!\r\n", rc);
       }
+      // --- Restore TFT ---
+      xs255 = 0xFF;
+      xn255 = 0xFF;
+      xh255 = 0xFF;
+      xwd255 = 0xFF;
+      xd255 = 0xFF;
+      tft1_print(0, 3, "Temp: ", GREEN);
+      tft1_print(0, 4, "Humi: ?? %", CYAN);
+      getTempAndHumi(true);
     }
     minute255 = xn;
   }
