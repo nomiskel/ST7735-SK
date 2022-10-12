@@ -94,6 +94,9 @@ bool getTempAndHumi(bool doAnyway) {
   String tmp;
   char buf[10];
   uint16_t col;
+  bool tempChanged = false;
+  bool humiChanged = false;
+  bool refreshClk = false;
   //
   if ((temp255 != temp) || (doAnyway == true)) {
     temp255 = temp;
@@ -104,7 +107,9 @@ bool getTempAndHumi(bool doAnyway) {
     col = GREEN;
     if (temp < 19) col = BLUE;
     if (temp > 25) col = RED;
-    tft1_print(6, 3, buf, col);
+    if (modeClockAnalog) refreshClk = true;
+    else tft1_print(6, 3, buf, col);
+    tempChanged = true;
   }
 
   if ((humi255 != humidity) || (doAnyway == true)) {
@@ -114,7 +119,17 @@ bool getTempAndHumi(bool doAnyway) {
     col = GREEN;
     if (humidity < 30) col = BLUE;
     if (humidity > 70) col = RED;
-    tft1_print(6, 4, buf, col);
+    if (modeClockAnalog) refreshClk = true;
+    else tft1_print(6, 4, buf, col);
+    humiChanged = true;
+  }
+
+  if (refreshClk) {
+    char buf1[10] = "";
+    char buf2[10] = "";
+    if (tempChanged) sprintf(buf1, "%sC", tmp);
+    if (humiChanged) sprintf(buf2, "%02i %%", h2);
+    clk.clock_printTempHumi(buf1, buf2);
   }
 
   return true;
@@ -156,6 +171,19 @@ int SyncRTC() {
   Serial.println(ymd);
   // --- RTC DS3231 ok ? ---
   if (RTC_OK) {
+    rtc.adjust(DateTime(y, m, d, h, n, s));
+    // --- 3 Sekunden addieren ---
+    setTime(h, n, s, d, m, y);
+    time_t xdt = now();
+    xdt += 3;
+    setTime(xdt);
+    xdt = now();
+    y = year();
+    m = month();
+    d = day();
+    h = hour();
+    n = minute();
+    s = second();
     rtc.adjust(DateTime(y, m, d, h, n, s));
   }
   setTime(h, n, s, d, m, y);  // now() wird auf Local gesetzt und kann benutzt werden.
@@ -384,6 +412,19 @@ void setup() {
         // --- RTC DS3231 ok ? ---
         if (RTC_OK) {
           rtc.adjust(DateTime(y, m, d, h, n, s));
+          // --- 3 Sekunden addieren ---
+          setTime(h, n, s, d, m, y);
+          time_t xdt = now();
+          xdt += 3;
+          setTime(xdt);
+          xdt = now();
+          y = year();
+          m = month();
+          d = day();
+          h = hour();
+          n = minute();
+          s = second();
+          rtc.adjust(DateTime(y, m, d, h, n, s));
         }
         setTime(h, n, s, d, m, y);  // now() wird auf Local gesetzt und kann benutzt werden.
       }
@@ -459,14 +500,39 @@ void loop() {
   }
   Serial.printf("%02i.%02i.%04i %02i:%02i:%02i\r\n", xd, xm, xy, xh, xn, xs);
   //
+  if (modeClockAnalog) {
+    clk.clock1(xh, xn, xs);
+  }
+  //
   // --- Neue Minute ? ---
   if (minute255 != xn) {
+    bool restoreTFT = false;
     if (xn == 0) {
       if (xh == 4) {  // --- Um 4 Uhr mit NTP-Server synchronisieren ---
         int rc = SyncRTC();
         if (rc == -1) Serial.println("SyncRTC() ok");
         else Serial.printf("SyncRTC() failed with rc = %i.!\r\n", rc);
       }
+      restoreTFT = true;
+    }
+    // --- Auf die analoge Uhr umswitchen ? ---
+    if ((xn % 2) == 1) {
+      modeClockAnalog = true;
+      clk.clock_init();
+      clk.clock1(xh, xn, xs);
+      getTempAndHumi(true);
+      char ddmm[10]; sprintf(ddmm, "%02i.%02i.", xd, xm);
+      char yyyy[10]; sprintf(yyyy, "%04i", xy);
+      clk.clock_printDateTime(ddmm, yyyy);
+      Serial.printf("ddmmyyyy: %s%s\r\n", ddmm, yyyy);
+    }
+    else {
+      modeClockAnalog = false;
+      tft.setFont(&FreeMono12pt7b);
+      tft.fillScreen(ST7735_BLACK);
+      restoreTFT = true;
+    }
+    if (restoreTFT) {
       // --- Restore TFT ---
       xs255 = 0xFF;
       xn255 = 0xFF;
@@ -480,90 +546,92 @@ void loop() {
     minute255 = xn;
   }
   //
-  // --- Alle 15 Sekunden die Uhrzeit-Anzeige umswitchen ---
-  if ((xs % 15) == 0) {
-    char s11[] = "           ";
-    tft1_print(0, 0, s11, BLACK);
-    tft1_print(0, 1, s11, BLACK);
-    //
-    xs255 = 0xFF;
-    xn255 = 0xFF;
-    xh255 = 0xFF;
-    xwd255 = 0xFF;
-    //
-    dispModeBig = !dispModeBig;
-    if (dispModeBig) tft2_print(2, 0, ":", YELLOW);
-    else tft1_print(3, 0, ":", YELLOW);
-  }
-  //
-  char sec10 = xs / 10;
-  sec10 += 48;
-  char buf10[2];
-  sprintf(buf10, "%c", sec10);
-  //buf10[1] = 0;
-  //Serial.println(buf10);
-  //
-  char sec1 = xs % 10;
-  sec1 += 48;
-  char buf1[2];
-  sprintf(buf1, "%c", sec1);
-  //buf1[1] = 0;
-  //Serial.println(buf1);
-  //
-  if (dispModeBig) {
-    if (xs255 != sec10) {
-      tft1_print(10, 0, &buf10[0], RED);
-      xs255 = sec10;
-    }
-    tft1_print(10, 1, &buf1[0], RED);
-    //
-    if (xn255 != xn) {
-      char min[3];
-      sprintf(min, "%02i", xn);
-      tft2_print(3, 0, min, YELLOW);
-      xn255 = xn;
+  // --- Alle 15 Sekunden die Uhrzeit-Anzeige umswitchen ? ---
+  if (! modeClockAnalog) {
+    if ((xs % 15) == 0) {
+      char s11[] = "           ";
+      tft1_print(0, 0, s11, BLACK);
+      tft1_print(0, 1, s11, BLACK);
+      //
+      xs255 = 0xFF;
+      xn255 = 0xFF;
+      xh255 = 0xFF;
+      xwd255 = 0xFF;
+      //
+      dispModeBig = !dispModeBig;
+      if (dispModeBig) tft2_print(2, 0, ":", YELLOW);
+      else tft1_print(3, 0, ":", YELLOW);
     }
     //
-    if (xh255 != xh) {
-      char hrs[3];
-      sprintf(hrs, "%02i", xh);
-      tft2_print(0, 0, hrs, YELLOW);
-      xh255 = xh;
+    char sec10 = xs / 10;
+    sec10 += 48;
+    char buf10[2];
+    sprintf(buf10, "%c", sec10);
+    //buf10[1] = 0;
+    //Serial.println(buf10);
+    //
+    char sec1 = xs % 10;
+    sec1 += 48;
+    char buf1[2];
+    sprintf(buf1, "%c", sec1);
+    //buf1[1] = 0;
+    //Serial.println(buf1);
+    //
+    if (dispModeBig) {
+      if (xs255 != sec10) {
+        tft1_print(10, 0, &buf10[0], RED);
+        xs255 = sec10;
+      }
+      tft1_print(10, 1, &buf1[0], RED);
+      //
+      if (xn255 != xn) {
+        char min[3];
+        sprintf(min, "%02i", xn);
+        tft2_print(3, 0, min, YELLOW);
+        xn255 = xn;
+      }
+      //
+      if (xh255 != xh) {
+        char hrs[3];
+        sprintf(hrs, "%02i", xh);
+        tft2_print(0, 0, hrs, YELLOW);
+        xh255 = xh;
+      }
     }
-  }
-  else {
-    //  012345678
-    // " 00:00 00"
-    tft1_print(8, 0, &buf1[0], RED);
-    if (xs255 != sec10) {
-      tft1_print(7, 0, &buf10[0], RED);
-      xs255 = sec10;
+    else {
+      //  012345678
+      // " 00:00 00"
+      tft1_print(8, 0, &buf1[0], RED);
+      if (xs255 != sec10) {
+        tft1_print(7, 0, &buf10[0], RED);
+        xs255 = sec10;
+      }
+      if (xn255 != xn) {
+        char min[3];
+        sprintf(min, "%02i", xn);
+        tft1_print(4, 0, min, YELLOW);
+        xn255 = xn;
+      }
+      if (xh255 != xh) {
+        char hrs[3];
+        sprintf(hrs, "%02i", xh);
+        tft1_print(1, 0, hrs, YELLOW);
+        xh255 = xh;
+      }
+      if (xwd255 != wd) {
+        tft1_print(0, 1, wdays[wd], WHITE);
+        xwd255 = wd;
+      }
     }
-    if (xn255 != xn) {
-      char min[3];
-      sprintf(min, "%02i", xn);
-      tft1_print(4, 0, min, YELLOW);
-      xn255 = xn;
+    //
+    if ((xd255 != xd) || (xm255 != xm) || (xy255 != xy)) {
+      char buf[12];
+      sprintf(buf, "%2i.%02i.%04i ", xd, xm, xy);
+      tft1_print(0, 2, buf, WHITE);
+      xd255 = xd;
+      xm255 = xm;
+      xy255 = xy;
     }
-    if (xh255 != xh) {
-      char hrs[3];
-      sprintf(hrs, "%02i", xh);
-      tft1_print(1, 0, hrs, YELLOW);
-      xh255 = xh;
-    }
-    if (xwd255 != wd) {
-      tft1_print(0, 1, wdays[wd], WHITE);
-      xwd255 = wd;
-    }
-  }
-  //
-  if ((xd255 != xd) || (xm255 != xm) || (xy255 != xy)) {
-    char buf[12];
-    sprintf(buf, "%2i.%02i.%04i ", xd, xm, xy);
-    tft1_print(0, 2, buf, WHITE);
-    xd255 = xd;
-    xm255 = xm;
-    xy255 = xy;
   }
   //
   // --- Temperatur und Humidity alle 10 Sekunden auslesen ---

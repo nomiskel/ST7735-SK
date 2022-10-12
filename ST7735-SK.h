@@ -16,6 +16,7 @@
 #include <DHT_U.h>
 #include <Fonts/FreeMono12pt7b.h>
 #include "WLAN-SSID-PWD.h"    // set WiFi network SSID and password
+#include "clock.h"
 
 #define OK2  // dispModeBig = false
 
@@ -62,6 +63,9 @@ WiFiUDP ntpUDP;
 // --- For 1.44" and 1.8" TFT with ST7735 use: ---
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
+// --- The analog clock ---
+CLOCK clk;
+
 // --- WeekDays ---
 static char *wdays[] = {" <Unused>  ", " Sonntag   ", " Montag    ", " Dienstag  ", " Mittwoch  ", " Donnerstag", " Freitag   ", " Samstag   "};
 
@@ -76,6 +80,10 @@ bool syncNTP = false;
 
 // --- RTC DS3231 vorhanden ? ---
 bool RTC_OK = true;
+
+// --- Analoge clock wird angezeigt ? ---
+bool modeClockAnalog = false;
+
 
 // --- Prototypes ---
 bool getTempAndHumi(bool doAnyway = false);
