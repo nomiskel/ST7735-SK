@@ -12,11 +12,26 @@
 #include <SPI.h>
 #include <TimeLib.h>
 #include <Adafruit_Sensor.h>
-#include <DHT.h>
-#include <DHT_U.h>
 #include <Fonts/FreeMono12pt7b.h>
 #include "WLAN-SSID-PWD.h"    // set WiFi network SSID and password
 #include "clock.h"
+
+// --- Temperatursensor DHT11, DHT22, DHT20 ? ---
+#define DHT22x
+#if defined(DHT11x) || defined(DHT22x) 
+  #include <DHT.h>
+  #include <DHT_U.h>
+  #define DHTPIN 5
+  #if defined(DHT11x)
+    #define DHTTYPE DHT11
+  #elif defined(DHT22x)
+    #define DHTTYPE DHT22
+  #endif
+  DHT_Unified dht(DHTPIN, DHTTYPE);
+#elif defined(DHT20x)
+  #include "DHT20.h"
+  DHT20 dht;
+#endif
 
 #define OK2  // dispModeBig = false
 
@@ -38,11 +53,6 @@
   // #define TFT_MOSI    23   // SDA
   // #define TFT_SCLK    18   // SCK
 #endif
-
-// --- Temperatursensor DHT22 ---
-#define DHTPIN 5
-#define DHTTYPE DHT22
-DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // --- NTP-Server ---
 #define TZ_INFO "WEST-1DWEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00" // Western European Time
@@ -79,7 +89,7 @@ bool NetworkAvailable = false;
 bool syncNTP = false;
 
 // --- RTC DS3231 vorhanden ? ---
-bool RTC_OK = true;
+const bool RTC_OK = true;
 
 // --- Analoge clock wird angezeigt ? ---
 bool modeClockAnalog = false;

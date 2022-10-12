@@ -4,10 +4,12 @@
 // -------------------------------
 bool getTempAndHumi(bool doAnyway) {
 // ===============================
-  static float temperature = 0;
+  static float temperature = 0xFF;
   static float temp255 = 0;
   static float humi255 = 0;
   static uint32_t ts255 = 0;
+  float temp = 0;
+  float humi = 0;
   
   // --- Alle 10 Sekunden Temperatur und Humidity auslesen ---
   uint32_t tsNow = millis();
@@ -19,77 +21,102 @@ bool getTempAndHumi(bool doAnyway) {
   // -----------------------------------------
   // Get temperature event and print its value
   // -----------------------------------------
-  bool restricted = false;
-  sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  if (isnan(event.temperature)) {
-    Serial.println(F("Error reading temperature!"));
-    temperature = 0;
-  }
-  else {
-    float temp = event.temperature;  // Nur Änderungen von 0.1° zulassen.!
+  #if defined(DHT20x)  // DHT20
+    dht.readData();
+    dht.convert();
+    temp = dht.getTemperature();
+    humi = dht.getHumidity();
+    dht.requestData();
+    //
     Serial.print(F("Temperature (before): "));
-    String tmp = String(temperature, 1);
-    Serial.print(tmp);
+    String sTmp = String(temperature, 1);
+    Serial.print(sTmp);
     Serial.println(F(" C"));
     //
     Serial.print(F("Temperature (now): "));
-    tmp = String(temp, 1);
-    Serial.print(tmp);
+    sTmp = String(temp, 1);
+    Serial.print(sTmp);
     Serial.println(F(" C"));
     //
-    if (temperature == 0) {
-      temperature = temp;
+    if (temperature == 0xFF) temperature = temp;
+    //
+  #else  // DHT11 und DHT22
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    if (isnan(event.temperature)) {
+      Serial.println(F("Error reading temperature!"));
+      temp = 0;
+      temperature = 0;
     }
     else {
-      int t4a = int(temperature * 100);
-      int t4b = int(temp * 100);
-      if ((t4b - t4a) > 10) {
-        temperature += 0.1;
-        restricted = true;
-      }
-      else if ((t4b - t4a) < -10) {
-        temperature -= 0.1;
-        restricted = true;
-      }
-      else {
-        temperature = temp;
-      }
+      temp = event.temperature;
+      Serial.print(F("Temperature (before): "));
+      String tmp = String(temperature, 1);
+      Serial.print(tmp);
+      Serial.println(F(" C"));
+      //
+      Serial.print(F("Temperature (now): "));
+      tmp = String(temp, 1);
+      Serial.print(tmp);
+      Serial.println(F(" C"));
+      //
+      if (temperature == 0xFF) temperature = temp;
     }
-  }
 
-  // --------------------------------------
-  // Get humidity event and print its value
-  // --------------------------------------
-  float humidity;
-  dht.humidity().getEvent(&event);
-  if (isnan(event.relative_humidity)) {
-    Serial.println(F("Error reading humidity!"));
-    humidity = 0;
-  }
-  else {
-    humidity = event.relative_humidity;
-    Serial.print(F("Humidity: "));
-    Serial.print(int(humidity));
-    Serial.println(F(" %"));
+    // --------------------------------------
+    // Get humidity event and print its value
+    // --------------------------------------
+    dht.humidity().getEvent(&event);
+    if (isnan(event.relative_humidity)) {
+      Serial.println(F("Error reading humidity!"));
+      humi = 0;
+    }
+    else {
+      humi = event.relative_humidity;
+      Serial.print(F("Humidity: "));
+      Serial.print(int(humi));
+      Serial.println(F(" %"));
+    }
+  #endif
+
+  // -----------------------------------------
+  // --- Nur Änderungen von 0.1°C zulassen ---
+  // -----------------------------------------
+  if (temp != temperature) {
+    int t4a = int(temperature * 100);
+    int t4b = int(temp * 100);
+    if ((t4b - t4a) > 10) {
+      temperature += 0.1;
+      //restricted = true;
+    }
+    else if ((t4b - t4a) < -10) {
+      temperature -= 0.1;
+      //restricted = true;
+    }
+    else {
+      temperature = temp;
+    }
   }
 
   // ----------------------------
   // Daten zum TFT-Display senden
   // ----------------------------
   // --- Temperature ---
-  float temp = temperature;
-  float CalibrationValue = 0;
-  temp += CalibrationValue;
+  #if defined(DHT20x)  // DHT20
+    float CalibrationValue = 0.3;
+  #else
+    float CalibrationValue = 0.3;
+  #endif
+  temp = temperature + CalibrationValue;
   //
   // --- Humidity ---
-  if (humidity < 0) {
-    humidity = 0;
+  if (humi < 0) {
+    humi = 0;
   }
-  else if (humidity > 99) {
-    humidity = 99;
+  else if (humi > 99) {
+    humi = 99;
   }
-  int h2 = int(humidity);
+  int h2 = int(humi);
   //
   String tmp;
   char buf[10];
@@ -112,24 +139,26 @@ bool getTempAndHumi(bool doAnyway) {
     tempChanged = true;
   }
 
-  if ((humi255 != humidity) || (doAnyway == true)) {
-    humi255 = humidity;
+  if ((int(humi255) != int(humi)) || (doAnyway == true)) {
+    Serial.printf("humi255=%i, humi=%i, doAnyway=%i\r\n", int(humi255), int(humi), doAnyway);
+    humi255 = humi;
     //
     sprintf(buf, "%02i", h2);
     col = GREEN;
-    if (humidity < 30) col = BLUE;
-    if (humidity > 70) col = RED;
+    if (humi < 30) col = BLUE;
+    if (humi > 70) col = RED;
     if (modeClockAnalog) refreshClk = true;
     else tft1_print(6, 4, buf, col);
     humiChanged = true;
   }
 
   if (refreshClk) {
-    char buf1[10] = "";
-    char buf2[10] = "";
+    char buf1[10]; buf1[0] = 0;
+    char buf2[10]; buf2[0] = 0;
     if (tempChanged) sprintf(buf1, "%sC", tmp);
     if (humiChanged) sprintf(buf2, "%02i %%", h2);
     clk.clock_printTempHumi(buf1, buf2);
+    Serial.printf("temp=%s, humi=%s\r\n", buf1, buf2);
   }
 
   return true;
@@ -316,8 +345,11 @@ void setup() {
   tft.setFont(&FreeMono12pt7b);
   tft1_print_msg("TFT ST7735", "OK", "INIT", GREEN, 2000);
 
-  // --- DHT22 ---
+  // --- DHT11, DHT22, DHT20 ---
   dht.begin();
+  #if defined(DHT20x)  // DHT20
+    dht.requestData();
+  #endif
 
   // --- Initialize RTC DS3231 RTC ? ---
   if (RTC_OK) {

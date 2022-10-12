@@ -50,14 +50,14 @@ void CLOCK::clock_printTempHumi(char *temp, char *humi) {
   int x, y;
   tft.setTextColor(ST7735_WHITE);
   //
-  if (temp != "") {
+  if (temp[0] != 0) {
     x = 0; y = 127 - 8; 
     tft.fillRect(x, y, 4 * 7, 8, ST7735_BLACK);
     tft.setCursor(x, y);
     tft.print(temp);
   }
   //
-  if (humi != "") {
+  if (humi[0] != 0) {
     x = 159 - 24; y = 127 - 8;
     tft.fillRect(x, y, 4 * 7, 8, ST7735_BLACK);
     tft.setCursor(x, y);
