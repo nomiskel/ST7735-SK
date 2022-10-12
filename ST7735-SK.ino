@@ -4,7 +4,7 @@
 // -------------------------------
 bool getTempAndHumi(bool doAnyway) {
 // ===============================
-  static float temperature = 0xFF;
+  static float temperature = 0;
   static float temp255 = 0;
   static float humi255 = 0;
   static uint32_t ts255 = 0;
@@ -38,7 +38,7 @@ bool getTempAndHumi(bool doAnyway) {
     Serial.print(sTmp);
     Serial.println(F(" C"));
     //
-    if (temperature == 0xFF) temperature = temp;
+    if (temperature == 0) temperature = temp;
     //
   #else  // DHT11 und DHT22
     sensors_event_t event;
@@ -60,7 +60,7 @@ bool getTempAndHumi(bool doAnyway) {
       Serial.print(tmp);
       Serial.println(F(" C"));
       //
-      if (temperature == 0xFF) temperature = temp;
+      if (temperature == 0) temperature = temp;
     }
 
     // --------------------------------------
