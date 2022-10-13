@@ -170,7 +170,7 @@ void CLOCK::clock_init() {
     }
   }
 
-  X_fillCircle(65, 65, 5, ST7735_RED);
+  X_fillCircle(65, 65, 5, ST7735_BLUE);
 }
 
 // ---------------------------------------
@@ -187,16 +187,16 @@ void CLOCK::clock1(int hh, int mm, int ss) {
   sx = cos((sdeg - 90) * 0.0174532925);    
   sy = sin((sdeg - 90) * 0.0174532925);
 
-  if (ss == 0 || initial) {
+  if ((ss == 0) || (initial == true)) {
     initial = 0;
     // -- Erase hour and minute hand positions every minute ---
     drawHand(ohx, ohy, 65, 65, true, false);
-    ohx = (hx * 33) + 64;    
-    ohy = (hy * 33) + 64;
+    ohx = (hx * 33) + 65;    
+    ohy = (hy * 33) + 65;
     //
     drawHand(omx, omy, 65, 65, true, false);
-    omx = (mx * 44) + 64;    
-    omy = (my * 44) + 64;
+    omx = (mx * 44) + 65;
+    omy = (my * 44) + 65;
   }
 
   // -- Redraw new second positions, hour and minute hands not erased here to avoid flicker ---
@@ -208,8 +208,8 @@ void CLOCK::clock1(int hh, int mm, int ss) {
   drawHand(omx, omy, 65, 65, false, false);
   //
   // --- Neuen Sekundenzeiger anzeigen ---
-  osx = (sx * 47) + 64;    
-  osy = (sy * 47) + 64;
+  osx = (sx * 47) + 65;
+  osy = (sy * 47) + 65;
   drawHand(osx, osy, 65, 65, false, true );
 
   // --- Ggf. die Stundenanzeige (12, 3, 6, 9) restaurieren ---
@@ -219,7 +219,7 @@ void CLOCK::clock1(int hh, int mm, int ss) {
   printHour(9);
 
   // --- Punkt in der Mitte ---
-  X_fillCircle(65, 65, 5, ST7735_RED);
+  X_fillCircle(65, 65, 5, ST7735_BLUE);
 }
 
 
