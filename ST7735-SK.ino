@@ -103,9 +103,9 @@ bool getTempAndHumi(bool doAnyway) {
   // ----------------------------
   // --- Temperature ---
   #if defined(DHT20x)  // DHT20
-    float CalibrationValue = 0.3;
+    float CalibrationValue = 0;
   #else
-    float CalibrationValue = 0.3;
+    float CalibrationValue = 0;
   #endif
   temp = temperature + CalibrationValue;
   //
