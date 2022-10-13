@@ -77,7 +77,8 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 CLOCK clk;
 
 // --- WeekDays ---
-static char *wdays[] = {" <Unused>  ", " Sonntag   ", " Montag    ", " Dienstag  ", " Mittwoch  ", " Donnerstag", " Freitag   ", " Samstag   "};
+static char *wdays[] = {" <Unused>  ", "Sonntag    ", "Montag     ", "Dienstag   ", "Mittwoch   ", "Donnerstag ", "Freitag    ", "Samstag    "};
+static char *wdays3[] = {"<X>.", "Son.", "Mon.", "Die.", "Mit.", "Don.", "Fre.", "Sam."};
 
 // --- return from centerText11 ---
 static char txt12[12];

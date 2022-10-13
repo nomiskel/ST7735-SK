@@ -34,12 +34,14 @@ void CLOCK::X_drawPixel(int16_t x, int16_t y, uint16_t color) {
   tft.drawPixel(x, y, color);
 }
 
-// ----------------------------------------------------
-void CLOCK::clock_printDateTime(char *ddmm, char *yyyy) {
-// ====================================================
+// ----------------------------------------------------------------
+void CLOCK::clock_printDateTime(char *ddmm, char *yyyy, char *wday) {
+// ================================================================
   tft.setTextColor(ST7735_WHITE);
   tft.setCursor(0, 0);
   tft.print(ddmm);
+  tft.setCursor(0, 10);
+  tft.print(wday);
   tft.setCursor(159 - 30, 0);
   tft.print(yyyy);
 }
@@ -52,7 +54,7 @@ void CLOCK::clock_printTempHumi(char *temp, char *humi) {
   //
   if (temp[0] != 0) {
     x = 0; y = 127 - 8; 
-    tft.fillRect(x, y, 4 * 7, 8, ST7735_BLACK);
+    tft.fillRect(x, y, 6 * 7, 8, ST7735_BLACK);
     tft.setCursor(x, y);
     tft.print(temp);
   }

@@ -473,7 +473,7 @@ void setup() {
 
   #ifdef OK1  // dispModeBig = true
   tft.fillScreen(ST77XX_BLACK);
-  tft2_print(0, 0, "00:00", YELLOW);
+  tft2_print(0, 0, "00:00", WHITE);
   tft1_print(0, 2, " 1.01.2000", WHITE);
   tft1_print(0, 3, "Temp: 0.0", GREEN);
   tft1_print(0, 4, "Humi: 00 %", CYAN);
@@ -481,8 +481,8 @@ void setup() {
 
   #ifdef OK2  // dispModeBig = false
   tft.fillScreen(ST77XX_BLACK);
-  tft1_print(0, 0, " 00:00 00", YELLOW);
-  tft1_print(0, 1, " Montag", WHITE);
+  tft1_print(0, 0, " 00:00 00", WHITE);
+  tft1_print(0, 1, "Samstag", WHITE);
   tft1_print(0, 2, " 1.01.2000", WHITE);
   tft1_print(0, 3, "Temp: 0.0", GREEN);
   tft1_print(0, 4, "Humi: 00 %", CYAN);
@@ -555,7 +555,7 @@ void loop() {
       getTempAndHumi(true);
       char ddmm[10]; sprintf(ddmm, "%02i.%02i.", xd, xm);
       char yyyy[10]; sprintf(yyyy, "%04i", xy);
-      clk.clock_printDateTime(ddmm, yyyy);
+      clk.clock_printDateTime(ddmm, yyyy, wdays3[wd]);
       Serial.printf("ddmmyyyy: %s%s\r\n", ddmm, yyyy);
     }
     else {
@@ -571,6 +571,8 @@ void loop() {
       xh255 = 0xFF;
       xwd255 = 0xFF;
       xd255 = 0xFF;
+      if (dispModeBig) tft2_print(2, 0, ":", WHITE);
+      else tft1_print(3, 0, ":", WHITE);
       tft1_print(0, 3, "Temp: ", GREEN);
       tft1_print(0, 4, "Humi: ?? %", CYAN);
       getTempAndHumi(true);
@@ -591,8 +593,8 @@ void loop() {
       xwd255 = 0xFF;
       //
       dispModeBig = !dispModeBig;
-      if (dispModeBig) tft2_print(2, 0, ":", YELLOW);
-      else tft1_print(3, 0, ":", YELLOW);
+      if (dispModeBig) tft2_print(2, 0, ":", WHITE);
+      else tft1_print(3, 0, ":", WHITE);
     }
     //
     char sec10 = xs / 10;
@@ -619,14 +621,14 @@ void loop() {
       if (xn255 != xn) {
         char min[3];
         sprintf(min, "%02i", xn);
-        tft2_print(3, 0, min, YELLOW);
+        tft2_print(3, 0, min, WHITE);
         xn255 = xn;
       }
       //
       if (xh255 != xh) {
         char hrs[3];
         sprintf(hrs, "%02i", xh);
-        tft2_print(0, 0, hrs, YELLOW);
+        tft2_print(0, 0, hrs, WHITE);
         xh255 = xh;
       }
     }
@@ -641,13 +643,13 @@ void loop() {
       if (xn255 != xn) {
         char min[3];
         sprintf(min, "%02i", xn);
-        tft1_print(4, 0, min, YELLOW);
+        tft1_print(4, 0, min, WHITE);
         xn255 = xn;
       }
       if (xh255 != xh) {
         char hrs[3];
         sprintf(hrs, "%02i", xh);
-        tft1_print(1, 0, hrs, YELLOW);
+        tft1_print(1, 0, hrs, WHITE);
         xh255 = xh;
       }
       if (xwd255 != wd) {

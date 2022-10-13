@@ -13,7 +13,7 @@ private:
   void X_drawPixel(int16_t x, int16_t y, uint16_t color);
   void printHour(int xhour);
 public:
-  void clock_printDateTime(char *ddmm, char *yyyy);
+  void clock_printDateTime(char *ddmm, char *yyyy, char *wday);
   void clock_printTempHumi(char *temp, char *humi);
   void clock_init();
   void clock1(int hh, int mm, int ss);
