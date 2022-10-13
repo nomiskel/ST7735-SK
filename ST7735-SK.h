@@ -6,7 +6,6 @@
 #include <Wire.h>
 #include <NTPClient.h>        // include NTPClient library
 #include <RTClib.h>
-#include <Preferences.h>
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
@@ -60,7 +59,6 @@
 
 //#define SEALEVELPRESSURE_HPA (1013.25)  // Needed for BME280
 
-//#define CLEAR_PREF  // Comment out to clear preferences
 //#define IP178       // Comment out to force IP: 192.168.178.xxx
 
 // --- DS3231 RTC ---
@@ -77,8 +75,26 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 CLOCK clk;
 
 // --- WeekDays ---
-static char *wdays[] = {" <Unused>  ", "Sonntag    ", "Montag     ", "Dienstag   ", "Mittwoch   ", "Donnerstag ", "Freitag    ", "Samstag    "};
-static char *wdays3[] = {"<X>.", "Son.", "Mon.", "Die.", "Mit.", "Don.", "Fre.", "Sam."};
+static char *wdays[] = {
+  "<Unused>   ", 
+  "Sonntag    ",
+  "Montag     ",
+  "Dienstag   ",
+  "Mittwoch   ",
+  "Donnerstag ",
+  "Freitag    ",
+  "Samstag    "
+};
+static char *wdays3[] = {
+  "<X>.",
+  "Son.",
+  "Mon.",
+  "Die.",
+  "Mit.",
+  "Don.",
+  "Fre.",
+  "Sam."
+};
 
 // --- return from centerText11 ---
 static char txt12[12];

@@ -335,13 +335,13 @@ void dt(int *d, int *m, int *y) {
 void setup() {
 // =========
   Serial.begin(115200);
-  delay(100);
+  delay(2000);
   Serial.println(F("Hello.! - This is ST7735-SK Scetch"));
 
   // Use this initializer if using a 1.8" TFT screen:
   tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
   Serial.println(F("Initialized"));
-  tft.setRotation(3);
+  tft.setRotation(1);
   tft.setFont(&FreeMono12pt7b);
   tft1_print_msg("TFT ST7735", "OK", "INIT", GREEN, 2000);
 
@@ -426,7 +426,7 @@ void setup() {
       bool ok = getLocalTime(&TM, 10000);      // Versuche 10 s zu Synchronisieren
       if (ok) {
         Serial.println("getLocalTime() - Success");
-        tft1_print_msg("WLAN", "SUCCESS", "NTP-TIME", RED, 2000);
+        tft1_print_msg("WLAN", "SUCCESS", "NTP-TIME", GREEN, 2000);
         //
         // --- Set date and time from NTP-Server ---
         int y = TM.tm_year + 1900;  //year(unix_epoch);

@@ -34,6 +34,32 @@ void CLOCK::X_drawPixel(int16_t x, int16_t y, uint16_t color) {
   tft.drawPixel(x, y, color);
 }
 
+// --------------------------------------------------------------------------------------------
+void CLOCK::drawHand(int16_t x0, int16_t y0, int16_t x1, int16_t y1, bool erase, bool isSecond) {
+// ============================================================================================
+
+  uint16_t col = ST7735_BLACK;
+  if (erase) col = ST7735_GREY;
+  else {
+    if (isSecond) col = ST7735_RED;
+  }
+
+  if (x0 > x1) {
+    X_drawLine(x0, y0, x1, y1, col);
+    X_drawLine(x0 - 1, y0 - 1, x1 - 1, y1 - 1, col);
+    X_drawLine(x0 - 1, y0 + 1, x1 - 1, y1 + 1, col);
+    X_drawLine(x0 - 2, y0 - 2, x1 - 2, y1 - 2, col);
+    X_drawLine(x0 - 2, y0 + 2, x1 - 2, y1 + 2, col);
+  }
+  else {
+    X_drawLine(x0, y0, x1, y1, col);
+    X_drawLine(x0 + 1, y0 - 1, x1 + 1, y1 - 1, col);
+    X_drawLine(x0 + 1, y0 + 1, x1 + 1, y1 + 1, col);
+    X_drawLine(x0 + 2, y0 - 2, x1 + 2, y1 - 2, col);
+    X_drawLine(x0 + 2, y0 + 2, x1 + 2, y1 + 2, col);
+  }
+}
+
 // ----------------------------------------------------------------
 void CLOCK::clock_printDateTime(char *ddmm, char *yyyy, char *wday) {
 // ================================================================
@@ -53,7 +79,7 @@ void CLOCK::clock_printTempHumi(char *temp, char *humi) {
   tft.setTextColor(ST7735_WHITE);
   //
   if (temp[0] != 0) {
-    x = 0; y = 127 - 8; 
+    x = 0; y = 127 - 8;
     tft.fillRect(x, y, 6 * 7, 8, ST7735_BLACK);
     tft.setCursor(x, y);
     tft.print(temp);
@@ -85,7 +111,7 @@ void CLOCK::clock_init() {
 // =====================
   tft.setFont();
   //tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
-  //tft.setRotation(3);
+  //tft.setRotation(1);
   tft.setTextSize(1);
   tft.fillScreen(ST7735_BLACK);
   //
@@ -144,7 +170,7 @@ void CLOCK::clock_init() {
     }
   }
 
-  X_fillCircle(65, 65, 3, ST7735_RED);
+  X_fillCircle(65, 65, 5, ST7735_RED);
 }
 
 // ---------------------------------------
@@ -164,35 +190,36 @@ void CLOCK::clock1(int hh, int mm, int ss) {
   if (ss == 0 || initial) {
     initial = 0;
     // -- Erase hour and minute hand positions every minute ---
-    X_drawLine(ohx, ohy, 65, 65, ST7735_GREY);
-    ohx = hx * 33 + 65;    
-    ohy = hy * 33 + 65;
-    X_drawLine(omx, omy, 65, 65, ST7735_GREY);
-    omx = mx * 44+65;    
-    omy = my * 44+65;
+    drawHand(ohx, ohy, 65, 65, true, false);
+    ohx = (hx * 33) + 64;    
+    ohy = (hy * 33) + 64;
+    //
+    drawHand(omx, omy, 65, 65, true, false);
+    omx = (mx * 44) + 64;    
+    omy = (my * 44) + 64;
   }
 
   // -- Redraw new second positions, hour and minute hands not erased here to avoid flicker ---
   // --- Alten Sekundenzeiger löschen ---
-  X_drawLine(osx, osy, 65, 65, ST7735_GREY);
+  drawHand(osx, osy, 65, 65, true, true);
   //
   // --- Stundenzeiger/Minutenzeiger bleiben gleich ---
-  X_drawLine(ohx, ohy, 65, 65, ST7735_BLACK);
-  X_drawLine(omx, omy, 65, 65, ST7735_BLACK);
+  drawHand(ohx, ohy, 65, 65, false, false);
+  drawHand(omx, omy, 65, 65, false, false);
   //
   // --- Neuen Sekundenzeiger anzeigen ---
-  osx = sx * 47 + 65;    
-  osy = sy * 47 + 65;
-  X_drawLine(osx, osy, 65, 65, ST7735_RED);
+  osx = (sx * 47) + 64;    
+  osy = (sy * 47) + 64;
+  drawHand(osx, osy, 65, 65, false, true );
 
-  // --- Ggf. die Stundenanzeige restaurieren ---
+  // --- Ggf. die Stundenanzeige (12, 3, 6, 9) restaurieren ---
   printHour(12);
   printHour(3);
   printHour(6);
   printHour(9);
 
   // --- Punkt in der Mitte ---
-  X_fillCircle(65, 65, 3, ST7735_RED);
+  X_fillCircle(65, 65, 5, ST7735_RED);
 }
 
 
