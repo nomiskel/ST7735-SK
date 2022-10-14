@@ -44,20 +44,18 @@ void CLOCK::drawHand(int16_t x0, int16_t y0, int16_t x1, int16_t y1, bool erase,
     if (isSecond) col = ST7735_RED;
   }
 
+  X_drawLine(x0, y0, x1, y1, col);
+
+  #if defined(HAND_3LINES)
   if (x0 > x1) {
-    X_drawLine(x0, y0, x1, y1, col);
     X_drawLine(x0 - 1, y0 - 1, x1 - 1, y1 - 1, col);
     X_drawLine(x0 - 1, y0 + 1, x1 - 1, y1 + 1, col);
-    X_drawLine(x0 - 2, y0 - 2, x1 - 2, y1 - 2, col);
-    X_drawLine(x0 - 2, y0 + 2, x1 - 2, y1 + 2, col);
   }
   else {
-    X_drawLine(x0, y0, x1, y1, col);
     X_drawLine(x0 + 1, y0 - 1, x1 + 1, y1 - 1, col);
     X_drawLine(x0 + 1, y0 + 1, x1 + 1, y1 + 1, col);
-    X_drawLine(x0 + 2, y0 - 2, x1 + 2, y1 - 2, col);
-    X_drawLine(x0 + 2, y0 + 2, x1 + 2, y1 + 2, col);
   }
+  #endif
 }
 
 // ----------------------------------------------------------------

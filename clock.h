@@ -4,6 +4,8 @@
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 
+#define HAND_3LINES  // Stunden-, Minuten-, Sekundenzeiger mit 3 Linien darstellen (besser lesbar)
+
 extern Adafruit_ST7735 tft;
 
 class CLOCK {
