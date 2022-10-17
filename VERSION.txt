@@ -1,0 +1,1 @@
+V1.0 - 17.10.2022 - Dies ist die erste Version zum Download von ST7735-SK.
